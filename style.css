@@ -269,9 +269,9 @@ body {
   display: block;
   border: 2px solid var(--green-border);
   border-radius: var(--radius-sm);
-  /* Scale visually for screens — actual canvas is 224×224 */
-  width: min(224px, 100%);
-  height: min(224px, 100%);
+  width: 224px;
+  height: 224px;
+  image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
