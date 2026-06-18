@@ -74,9 +74,14 @@
 
   function updatePreview() {
   const eq = input.value;
+  const DPR = window.devicePixelRatio || 1;
+
   previewCanvas.width  = CANVAS_SIZE * DPR;
   previewCanvas.height = CANVAS_SIZE * DPR;
-  previewCtx.scale(DPR, DPR);
+  previewCanvas.style.width  = CANVAS_SIZE + 'px';
+  previewCanvas.style.height = CANVAS_SIZE + 'px';
+
+  previewCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   drawCanvas(previewCtx, eq, CANVAS_SIZE);
 }
 
