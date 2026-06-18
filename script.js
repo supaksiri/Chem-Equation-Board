@@ -26,7 +26,7 @@
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
-  const MAX_FONT_SIZE = 24;
+  const MAX_FONT_SIZE = 36;
   const MIN_FONT_SIZE = 8;
   const MAX_TEXT_W    = 200; /* leave ~12px each side */
   const CENTER        = CANVAS_SIZE / 2; /* 112 */
