@@ -133,11 +133,6 @@
   /* ===================================================
      EXAMPLE BUTTON
      =================================================== */
-  btnExample.addEventListener('click', () => {
-    input.value = 'HCl(aq) → H⁺(aq) + Cl⁻(aq)';
-    input.focus();
-    updatePreview();
-  });
 
   /* ===================================================
      CLEAR
