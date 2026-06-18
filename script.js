@@ -11,7 +11,6 @@
   const previewCanvas = document.getElementById('preview-canvas');
   const previewCtx  = previewCanvas.getContext('2d');
 
-  const btnExample  = document.getElementById('btn-example');
   const btnClear    = document.getElementById('btn-clear');
   const btnCopy     = document.getElementById('btn-copy');
   const btnSave     = document.getElementById('btn-save');
