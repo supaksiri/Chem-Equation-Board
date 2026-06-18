@@ -7,126 +7,131 @@
   'use strict';
 
   /* ---- DOM references ---- */
-  const input       = document.getElementById('equation-input');
+  const input         = document.getElementById('equation-input');
   const previewCanvas = document.getElementById('preview-canvas');
-  const previewCtx  = previewCanvas.getContext('2d');
+  const previewCtx    = previewCanvas.getContext('2d');
 
-  const btnClear    = document.getElementById('btn-clear');
-  const btnCopy     = document.getElementById('btn-copy');
-  const btnSave     = document.getElementById('btn-save');
-  const statusBar   = document.getElementById('status-bar');
+  const btnClear  = document.getElementById('btn-clear');
+  const btnCopy   = document.getElementById('btn-copy');
+  const btnSave   = document.getElementById('btn-save');
+  const statusBar = document.getElementById('status-bar');
 
   const toggleCharge = document.getElementById('btn-toggle-charge');
   const toggleSub    = document.getElementById('btn-toggle-sub');
   const toggleArrow  = document.getElementById('btn-toggle-arrow');
 
-  const panelCharge  = document.getElementById('panel-charge');
-  const panelSub     = document.getElementById('panel-sub');
-  const panelArrow   = document.getElementById('panel-arrow');
+  const panelCharge = document.getElementById('panel-charge');
+  const panelSub    = document.getElementById('panel-sub');
+  const panelArrow  = document.getElementById('panel-arrow');
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
   const MAX_FONT_SIZE = 36;
   const MIN_FONT_SIZE = 8;
-  const MAX_TEXT_W    = 200; /* leave ~12px each side */
+  const MAX_TEXT_W    = 200;
   const CENTER        = CANVAS_SIZE / 2; /* 112 */
-   const DPR = window.devicePixelRatio || 1;
   const FONT_FAMILY   = 'Arial, "Noto Sans Thai", sans-serif';
 
   /* ===================================================
-     PREVIEW — draw equation onto the 224×224 canvas
+     แยกข้อความเป็น segments ปกติ vs สัญลักษณ์พิเศษ
      =================================================== */
-  function calcFontSize(ctx, text) {
-    let size = MAX_FONT_SIZE;
-    while (size >= MIN_FONT_SIZE) {
-      ctx.font = size + 'px ' + FONT_FAMILY;
-      if (ctx.measureText(text).width <= MAX_TEXT_W) break;
-      size--;
+  function splitSegments(text) {
+    const specialPattern = /([→←⇌⁺⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉])/g;
+    const segments = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = specialPattern.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ text: text.slice(lastIndex, match.index), special: false });
+      }
+      segments.push({ text: match[0], special: true });
+      lastIndex = match.index + match[0].length;
     }
-    return size;
+    if (lastIndex < text.length) {
+      segments.push({ text: text.slice(lastIndex), special: false });
+    }
+    return segments;
   }
 
+  /* ===================================================
+     คำนวณ font size ที่ทำให้ข้อความพอดี MAX_TEXT_W
+     =================================================== */
+  function calcFontSize(ctx, segments) {
+    let fontSize = MAX_FONT_SIZE;
+    while (fontSize >= MIN_FONT_SIZE) {
+      let totalW = 0;
+      segments.forEach(seg => {
+        const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+        ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
+        totalW += ctx.measureText(seg.text).width;
+      });
+      if (totalW <= MAX_TEXT_W) break;
+      fontSize--;
+    }
+    return fontSize;
+  }
+
+  /* ===================================================
+     วาดลง Canvas
+     =================================================== */
   function drawCanvas(ctx, text, size) {
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, size, size);
+    /* พื้นหลังขาว */
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, size, size);
 
-  if (!text || text.trim() === '') {
-    ctx.strokeStyle = '#E8F5EF';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(size / 2, 20);
-    ctx.lineTo(size / 2, size - 20);
-    ctx.moveTo(20, size / 2);
-    ctx.lineTo(size - 20, size / 2);
-    ctx.stroke();
-    return;
-  }
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  /* แยกข้อความเป็น segments ปกติ vs สัญลักษณ์พิเศษ */
-  const specialPattern = /([→←⇌⁺⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉]+)/g;
-  const segments = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = specialPattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({ text: text.slice(lastIndex, match.index), special: false });
+    if (!text || text.trim() === '') {
+      ctx.strokeStyle = '#E8F5EF';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(size / 2, 20);
+      ctx.lineTo(size / 2, size - 20);
+      ctx.moveTo(20, size / 2);
+      ctx.lineTo(size - 20, size / 2);
+      ctx.stroke();
+      return;
     }
-    segments.push({ text: match[0], special: true });
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    segments.push({ text: text.slice(lastIndex), special: false });
-  }
 
-  /* คำนวณ font size รวม */
-  let fontSize = MAX_FONT_SIZE;
-  while (fontSize >= MIN_FONT_SIZE) {
+    const segments = splitSegments(text);
+    const fontSize = calcFontSize(ctx, segments);
+
+    /* วัดความกว้างรวมจริงเพื่อจัดกึ่งกลาง */
     let totalWidth = 0;
     segments.forEach(seg => {
-      const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
-      ctx.font = segSize + 'px ' + FONT_FAMILY;
+      const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+      ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
       totalWidth += ctx.measureText(seg.text).width;
     });
-    if (totalWidth <= MAX_TEXT_W) break;
-    fontSize--;
+
+    /* วาดจากซ้ายไปขวา textAlign = 'left' */
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle    = '#000000';
+
+    let x = CENTER - totalWidth / 2;
+    segments.forEach(seg => {
+      const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+      ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
+      ctx.fillText(seg.text, x, CENTER);
+      x += ctx.measureText(seg.text).width;
+    });
   }
 
-  /* คำนวณความกว้างรวมเพื่อจัดกึ่งกลาง */
-  let totalWidth = 0;
-  segments.forEach(seg => {
-    const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
-    ctx.font = segSize + 'px ' + FONT_FAMILY;
-    totalWidth += ctx.measureText(seg.text).width;
-  });
-
-  /* วาดทีละ segment */
-  let x = CENTER - totalWidth / 2;
-  segments.forEach(seg => {
-    const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
-    ctx.font = 'bold ' + segSize + 'px ' + FONT_FAMILY;
-    ctx.fillStyle = '#000000';
-    const w = ctx.measureText(seg.text).width;
-    ctx.fillText(seg.text, x + w / 2, CENTER);
-    x += w;
-  });
-}
-
+  /* ===================================================
+     PREVIEW — คมชัดด้วย devicePixelRatio
+     =================================================== */
   function updatePreview() {
-  const eq = input.value;
-  const DPR = window.devicePixelRatio || 1;
+    const eq  = input.value;
+    const DPR = window.devicePixelRatio || 1;
 
-  previewCanvas.width  = CANVAS_SIZE * DPR;
-  previewCanvas.height = CANVAS_SIZE * DPR;
-  previewCanvas.style.width  = CANVAS_SIZE + 'px';
-  previewCanvas.style.height = CANVAS_SIZE + 'px';
+    previewCanvas.width        = CANVAS_SIZE * DPR;
+    previewCanvas.height       = CANVAS_SIZE * DPR;
+    previewCanvas.style.width  = CANVAS_SIZE + 'px';
+    previewCanvas.style.height = CANVAS_SIZE + 'px';
 
-  previewCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  drawCanvas(previewCtx, eq, CANVAS_SIZE);
-}
+    previewCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawCanvas(previewCtx, eq, CANVAS_SIZE);
+  }
 
   /* ===================================================
      INSERT AT CURSOR
@@ -146,7 +151,7 @@
   }
 
   /* ===================================================
-     TOOL PANELS — toggle open/close, close others
+     TOOL PANELS — toggle open/close, ปิดกลุ่มอื่น
      =================================================== */
   const groups = [
     { btn: toggleCharge, panel: panelCharge },
@@ -174,17 +179,12 @@
   toggleSub.addEventListener('click',    () => toggleGroup(toggleSub,    panelSub));
   toggleArrow.addEventListener('click',  () => toggleGroup(toggleArrow,  panelArrow));
 
-  /* Delegate symbol button clicks */
   document.querySelectorAll('.btn-sym').forEach(btn => {
     btn.addEventListener('click', () => {
       const sym = btn.dataset.sym;
       if (sym) insertAtCursor(sym);
     });
   });
-
-  /* ===================================================
-     EXAMPLE BUTTON
-     =================================================== */
 
   /* ===================================================
      CLEAR
@@ -205,7 +205,6 @@
       showStatus('ยังไม่มีสมการให้คัดลอก', true);
       return;
     }
-
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
         await navigator.clipboard.writeText(eq);
@@ -238,7 +237,6 @@
       return;
     }
 
-    /* Create an off-screen 224×224 canvas */
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width  = CANVAS_SIZE;
     exportCanvas.height = CANVAS_SIZE;
@@ -248,7 +246,6 @@
 
     const filename = generateFilename();
 
-    /* Try toBlob first (preferred) */
     if (exportCanvas.toBlob) {
       exportCanvas.toBlob(blob => {
         if (!blob) {
@@ -259,8 +256,7 @@
         triggerDownload(url, filename);
         setTimeout(() => URL.revokeObjectURL(url), 10000);
         showStatus('บันทึกไฟล์ PNG 224×224 แล้ว ✓');
-        tryShare(blob, filename);
-      }, 'image/png');
+      }, 'image/png', 1.0);
     } else {
       fallbackDataURL(exportCanvas, filename);
     }
@@ -280,22 +276,12 @@
     const a = document.createElement('a');
     a.href     = href;
     a.download = filename;
+    a.rel      = 'noopener';
+    a.target   = '_self';
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-  }
-
-  /* Web Share API — optional on mobile */
-  async function tryShare(blob, filename) {
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })
-    ) {
-      /* We do NOT force share — download already triggered */
-      /* Share is available but not required */
-    }
+    requestAnimationFrame(() => document.body.removeChild(a));
   }
 
   /* ===================================================
@@ -304,16 +290,8 @@
   function generateFilename() {
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
-    const date = [
-      now.getFullYear(),
-      pad(now.getMonth() + 1),
-      pad(now.getDate()),
-    ].join('');
-    const time = [
-      pad(now.getHours()),
-      pad(now.getMinutes()),
-      pad(now.getSeconds()),
-    ].join('');
+    const date = [now.getFullYear(), pad(now.getMonth() + 1), pad(now.getDate())].join('');
+    const time = [pad(now.getHours()), pad(now.getMinutes()), pad(now.getSeconds())].join('');
     return 'chem-equation-' + date + '-' + time + '.png';
   }
 
@@ -324,8 +302,8 @@
 
   function showStatus(message, isError = false, duration = 2800) {
     if (statusTimeout) clearTimeout(statusTimeout);
-    statusBar.textContent   = message;
-    statusBar.className     = 'status-bar' + (isError ? ' status--error' : '');
+    statusBar.textContent = message;
+    statusBar.className   = 'status-bar' + (isError ? ' status--error' : '');
     statusBar.style.opacity = '1';
     statusTimeout = setTimeout(() => {
       statusBar.style.opacity = '0';
@@ -337,13 +315,13 @@
      LIVE INPUT LISTENER
      =================================================== */
   input.addEventListener('input',   updatePreview);
-  input.addEventListener('keydown', updatePreview); /* catch composing */
-  input.addEventListener('paste', () => setTimeout(updatePreview, 0));
+  input.addEventListener('keydown', updatePreview);
+  input.addEventListener('paste',   () => setTimeout(updatePreview, 0));
 
   /* ===================================================
      INIT
      =================================================== */
-  updatePreview(); /* draw blank canvas on load */
+  updatePreview();
   input.focus();
 
 })();
