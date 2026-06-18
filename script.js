@@ -47,30 +47,73 @@
   }
 
   function drawCanvas(ctx, text, size) {
-    /* White background */
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, size, size);
 
-    if (!text || text.trim() === '') {
-      /* Draw placeholder grid lines to show it's ready */
-      ctx.strokeStyle = '#E8F5EF';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(size / 2, 20);
-      ctx.lineTo(size / 2, size - 20);
-      ctx.moveTo(20, size / 2);
-      ctx.lineTo(size - 20, size / 2);
-      ctx.stroke();
-      return;
-    }
-
-    const fontSize = calcFontSize(ctx, text);
-    ctx.font = fontSize + 'px ' + FONT_FAMILY;
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, CENTER, CENTER);
+  if (!text || text.trim() === '') {
+    ctx.strokeStyle = '#E8F5EF';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(size / 2, 20);
+    ctx.lineTo(size / 2, size - 20);
+    ctx.moveTo(20, size / 2);
+    ctx.lineTo(size - 20, size / 2);
+    ctx.stroke();
+    return;
   }
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  /* แยกข้อความเป็น segments ปกติ vs สัญลักษณ์พิเศษ */
+  const specialPattern = /([→←⇌⁺⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉]+)/g;
+  const segments = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = specialPattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: text.slice(lastIndex, match.index), special: false });
+    }
+    segments.push({ text: match[0], special: true });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ text: text.slice(lastIndex), special: false });
+  }
+
+  /* คำนวณ font size รวม */
+  let fontSize = MAX_FONT_SIZE;
+  while (fontSize >= MIN_FONT_SIZE) {
+    let totalWidth = 0;
+    segments.forEach(seg => {
+      const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
+      ctx.font = segSize + 'px ' + FONT_FAMILY;
+      totalWidth += ctx.measureText(seg.text).width;
+    });
+    if (totalWidth <= MAX_TEXT_W) break;
+    fontSize--;
+  }
+
+  /* คำนวณความกว้างรวมเพื่อจัดกึ่งกลาง */
+  let totalWidth = 0;
+  segments.forEach(seg => {
+    const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
+    ctx.font = segSize + 'px ' + FONT_FAMILY;
+    totalWidth += ctx.measureText(seg.text).width;
+  });
+
+  /* วาดทีละ segment */
+  let x = CENTER - totalWidth / 2;
+  segments.forEach(seg => {
+    const segSize = seg.special ? Math.round(fontSize * 1.5) : fontSize;
+    ctx.font = 'bold ' + segSize + 'px ' + FONT_FAMILY;
+    ctx.fillStyle = '#000000';
+    const w = ctx.measureText(seg.text).width;
+    ctx.fillText(seg.text, x + w / 2, CENTER);
+    x += w;
+  });
+}
 
   function updatePreview() {
   const eq = input.value;
