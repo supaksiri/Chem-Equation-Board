@@ -30,6 +30,7 @@
   const MIN_FONT_SIZE = 8;
   const MAX_TEXT_W    = 200; /* leave ~12px each side */
   const CENTER        = CANVAS_SIZE / 2; /* 112 */
+   const DPR = window.devicePixelRatio || 1;
   const FONT_FAMILY   = 'Arial, "Noto Sans Thai", sans-serif';
 
   /* ===================================================
@@ -72,9 +73,12 @@
   }
 
   function updatePreview() {
-    const eq = input.value;
-    drawCanvas(previewCtx, eq, CANVAS_SIZE);
-  }
+  const eq = input.value;
+  previewCanvas.width  = CANVAS_SIZE * DPR;
+  previewCanvas.height = CANVAS_SIZE * DPR;
+  previewCtx.scale(DPR, DPR);
+  drawCanvas(previewCtx, eq, CANVAS_SIZE);
+}
 
   /* ===================================================
      INSERT AT CURSOR
