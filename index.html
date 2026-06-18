@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chem Equation Board</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-icon" aria-hidden="true">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="10" fill="#16A36A"/>
+        <text x="18" y="25" text-anchor="middle" font-size="18" font-family="Arial,sans-serif" fill="white">⚗</text>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Chem Equation Board</h1>
+      <p class="header-sub">กระดานพิมพ์สมการเคมี 224×224 px</p>
+      <p class="header-dev">พัฒนาโดย นายธนพงศ์ ชาชิโย</p>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- INPUT SECTION -->
+    <section class="section">
+      <label class="section-label" for="equation-input">สมการเคมี</label>
+      <div class="input-row">
+        <input
+          id="equation-input"
+          type="text"
+          class="equation-input"
+          placeholder="พิมพ์สมการเคมี เช่น HCl(aq) → H⁺(aq) + Cl⁻(aq)"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <button class="btn-example" id="btn-example" title="ใส่ตัวอย่าง">ตัวอย่าง</button>
+      </div>
+    </section>
+
+    <!-- TOOL BUTTONS -->
+    <section class="section">
+      <p class="section-label">เครื่องมือแทรกสัญลักษณ์</p>
+      <div class="tool-groups">
+
+        <!-- Group 1: ประจุ -->
+        <div class="tool-group">
+          <button class="btn-group" id="btn-toggle-charge" aria-expanded="false" aria-controls="panel-charge">
+            <span>ประจุ / ตัวยก</span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="tool-panel" id="panel-charge" hidden>
+            <div class="panel-section-label">เครื่องหมายเดี่ยว</div>
+            <div class="symbol-row">
+              <button class="btn-sym" data-sym="⁺">⁺</button>
+              <button class="btn-sym" data-sym="⁻">⁻</button>
+            </div>
+            <div class="panel-section-label">ประจุบวก</div>
+            <div class="symbol-row">
+              <button class="btn-sym" data-sym="¹⁺">¹⁺</button>
+              <button class="btn-sym" data-sym="²⁺">²⁺</button>
+              <button class="btn-sym" data-sym="³⁺">³⁺</button>
+              <button class="btn-sym" data-sym="⁴⁺">⁴⁺</button>
+              <button class="btn-sym" data-sym="⁵⁺">⁵⁺</button>
+              <button class="btn-sym" data-sym="⁶⁺">⁶⁺</button>
+              <button class="btn-sym" data-sym="⁷⁺">⁷⁺</button>
+              <button class="btn-sym" data-sym="⁸⁺">⁸⁺</button>
+              <button class="btn-sym" data-sym="⁹⁺">⁹⁺</button>
+            </div>
+            <div class="panel-section-label">ประจุลบ</div>
+            <div class="symbol-row">
+              <button class="btn-sym" data-sym="¹⁻">¹⁻</button>
+              <button class="btn-sym" data-sym="²⁻">²⁻</button>
+              <button class="btn-sym" data-sym="³⁻">³⁻</button>
+              <button class="btn-sym" data-sym="⁴⁻">⁴⁻</button>
+              <button class="btn-sym" data-sym="⁵⁻">⁵⁻</button>
+              <button class="btn-sym" data-sym="⁶⁻">⁶⁻</button>
+              <button class="btn-sym" data-sym="⁷⁻">⁷⁻</button>
+              <button class="btn-sym" data-sym="⁸⁻">⁸⁻</button>
+              <button class="btn-sym" data-sym="⁹⁻">⁹⁻</button>
+            </div>
+            <div class="panel-section-label">เลขยกกำลังเดี่ยว</div>
+            <div class="symbol-row">
+              <button class="btn-sym" data-sym="¹">¹</button>
+              <button class="btn-sym" data-sym="²">²</button>
+              <button class="btn-sym" data-sym="³">³</button>
+              <button class="btn-sym" data-sym="⁴">⁴</button>
+              <button class="btn-sym" data-sym="⁵">⁵</button>
+              <button class="btn-sym" data-sym="⁶">⁶</button>
+              <button class="btn-sym" data-sym="⁷">⁷</button>
+              <button class="btn-sym" data-sym="⁸">⁸</button>
+              <button class="btn-sym" data-sym="⁹">⁹</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: ตัวห้อย -->
+        <div class="tool-group">
+          <button class="btn-group" id="btn-toggle-sub" aria-expanded="false" aria-controls="panel-sub">
+            <span>ตัวห้อย</span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="tool-panel" id="panel-sub" hidden>
+            <div class="panel-section-label">เลขห้อย 1–20</div>
+            <div class="symbol-row">
+              <button class="btn-sym" data-sym="₁">₁</button>
+              <button class="btn-sym" data-sym="₂">₂</button>
+              <button class="btn-sym" data-sym="₃">₃</button>
+              <button class="btn-sym" data-sym="₄">₄</button>
+              <button class="btn-sym" data-sym="₅">₅</button>
+              <button class="btn-sym" data-sym="₆">₆</button>
+              <button class="btn-sym" data-sym="₇">₇</button>
+              <button class="btn-sym" data-sym="₈">₈</button>
+              <button class="btn-sym" data-sym="₉">₉</button>
+              <button class="btn-sym" data-sym="₁₀">₁₀</button>
+              <button class="btn-sym" data-sym="₁₁">₁₁</button>
+              <button class="btn-sym" data-sym="₁₂">₁₂</button>
+              <button class="btn-sym" data-sym="₁₃">₁₃</button>
+              <button class="btn-sym" data-sym="₁₄">₁₄</button>
+              <button class="btn-sym" data-sym="₁₅">₁₅</button>
+              <button class="btn-sym" data-sym="₁₆">₁₆</button>
+              <button class="btn-sym" data-sym="₁₇">₁₇</button>
+              <button class="btn-sym" data-sym="₁₈">₁₈</button>
+              <button class="btn-sym" data-sym="₁₉">₁₉</button>
+              <button class="btn-sym" data-sym="₂₀">₂₀</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: ลูกศร -->
+        <div class="tool-group">
+          <button class="btn-group" id="btn-toggle-arrow" aria-expanded="false" aria-controls="panel-arrow">
+            <span>ลูกศร</span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="tool-panel" id="panel-arrow" hidden>
+            <div class="symbol-row">
+              <button class="btn-sym btn-sym--wide" data-sym=" → " title="ไปข้างหน้า">→ ไปข้างหน้า</button>
+              <button class="btn-sym btn-sym--wide" data-sym=" ← " title="ย้อนกลับ">← ย้อนกลับ</button>
+              <button class="btn-sym btn-sym--wide" data-sym=" ⇌ " title="สมดุล">⇌ สมดุล</button>
+              <button class="btn-sym btn-sym--wide" data-sym=" = " title="เท่ากับ">= เท่ากับ</button>
+              <button class="btn-sym btn-sym--wide" data-sym=" — " title="ขีดยาว">— ขีดยาว</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PREVIEW SECTION -->
+    <section class="section">
+      <p class="section-label">ตัวอย่างภาพ 224×224</p>
+      <div class="preview-wrapper">
+        <canvas id="preview-canvas" width="224" height="224" aria-label="ตัวอย่างภาพสมการเคมี"></canvas>
+      </div>
+      <p class="preview-hint">ภาพที่ export จะมีขนาดจริง 224×224 px พื้นหลังขาว ตัวอักษรดำ</p>
+    </section>
+
+    <!-- CONTROL BUTTONS -->
+    <section class="section section--controls">
+      <button class="btn-control btn-clear" id="btn-clear">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        ล้าง
+      </button>
+      <button class="btn-control btn-copy" id="btn-copy">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        คัดลอกสมการ
+      </button>
+      <button class="btn-control btn-save" id="btn-save">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        บันทึก PNG 224×224
+      </button>
+    </section>
+
+    <!-- STATUS -->
+    <div class="status-bar" id="status-bar" aria-live="polite"></div>
+
+  </main>
+
+  <footer class="footer">
+    <p>Chem Equation Board &nbsp;·&nbsp; Export สำหรับ Teachable Machine &nbsp;·&nbsp; พัฒนาโดย นายธนพงศ์ ชาชิโย</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
