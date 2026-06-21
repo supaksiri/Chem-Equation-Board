@@ -429,3 +429,9 @@ body {
     transition: none !important;
   }
 }
+.input-warning {
+  font-size: 0.75rem;
+  color: #C0392B;
+  margin-top: 6px;
+  padding-left: 2px;
+}
