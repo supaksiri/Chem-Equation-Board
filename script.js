@@ -26,20 +26,14 @@
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
-  const MAX_FONT_SIZE = 28;
+  const MAX_FONT_SIZE = 36;
   const MIN_FONT_SIZE = 8;
   const MAX_TEXT_W    = 200;
   const CENTER        = CANVAS_SIZE / 2; /* 112 */
-
-  /*
-     ใช้ monospace font ที่มีทุกระบบ (Windows/Mac/Android/iOS)
-     ทำให้ภาพเหมือนกันทุกเครื่อง
-  */
-  const FONT_FAMILY = '"Courier New", Courier, monospace';
+  const FONT_FAMILY   = 'Arial, "Noto Sans Thai", sans-serif';
 
   /* ===================================================
-     แยกข้อความเป็น segments: ปกติ vs สัญลักษณ์พิเศษ
-     สัญลักษณ์พิเศษ = ประจุ ตัวห้อย ลูกศร
+     แยกข้อความเป็น segments ปกติ vs สัญลักษณ์พิเศษ
      =================================================== */
   function splitSegments(text) {
     const specialPattern = /([→←⇌⁺⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉])/g;
@@ -62,17 +56,14 @@
 
   /* ===================================================
      คำนวณ font size ที่ทำให้ข้อความพอดี MAX_TEXT_W
-     ประจุ/ห้อย ใช้ขนาด 1.8 เท่าของ font ปกติ
      =================================================== */
-  const SPECIAL_SCALE = 1.8;
-
   function calcFontSize(ctx, segments) {
     let fontSize = MAX_FONT_SIZE;
     while (fontSize >= MIN_FONT_SIZE) {
       let totalW = 0;
       segments.forEach(seg => {
-        const fs = seg.special ? Math.round(fontSize * SPECIAL_SCALE) : fontSize;
-        ctx.font = fs + 'px ' + FONT_FAMILY;
+        const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+        ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
         totalW += ctx.measureText(seg.text).width;
       });
       if (totalW <= MAX_TEXT_W) break;
@@ -83,9 +74,6 @@
 
   /* ===================================================
      วาดลง Canvas
-     - ไม่ตัวหนา เพื่อให้ AI อ่านได้ชัด
-     - ประจุ/ห้อย ใหญ่กว่าปกติ 1.8 เท่า
-     - font คงที่ทุกเครื่อง
      =================================================== */
   function drawCanvas(ctx, text, size) {
     /* พื้นหลังขาว */
@@ -104,26 +92,26 @@
       return;
     }
 
-    const segments  = splitSegments(text);
-    const fontSize  = calcFontSize(ctx, segments);
+    const segments = splitSegments(text);
+    const fontSize = calcFontSize(ctx, segments);
 
-    /* วัดความกว้างรวมเพื่อจัดกึ่งกลาง */
+    /* วัดความกว้างรวมจริงเพื่อจัดกึ่งกลาง */
     let totalWidth = 0;
     segments.forEach(seg => {
-      const fs = seg.special ? Math.round(fontSize * SPECIAL_SCALE) : fontSize;
-      ctx.font = fs + 'px ' + FONT_FAMILY;
+      const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+      ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
       totalWidth += ctx.measureText(seg.text).width;
     });
 
-    /* วาดจากซ้ายไปขวา ไม่ตัวหนา */
+    /* วาดจากซ้ายไปขวา textAlign = 'left' */
     ctx.textAlign    = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle    = '#000000';
 
     let x = CENTER - totalWidth / 2;
     segments.forEach(seg => {
-      const fs = seg.special ? Math.round(fontSize * SPECIAL_SCALE) : fontSize;
-      ctx.font = fs + 'px ' + FONT_FAMILY;
+      const fs = seg.special ? Math.round(fontSize * 1.6) : fontSize;
+      ctx.font = 'bold ' + fs + 'px ' + FONT_FAMILY;
       ctx.fillText(seg.text, x, CENTER);
       x += ctx.measureText(seg.text).width;
     });
@@ -147,8 +135,6 @@
 
   /* ===================================================
      INSERT AT CURSOR
-     + และลูกศร จะเว้นวรรคหน้า-หลังอัตโนมัติ
-     (กำหนดใน data-sym ของ index.html แล้ว)
      =================================================== */
   function insertAtCursor(symbol) {
     const start = input.selectionStart;
