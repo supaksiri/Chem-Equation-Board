@@ -99,7 +99,7 @@
     let total = 0;
     const superSize = Math.round(fontSize * 0.65);
     const subSize   = Math.round(fontSize * 0.65);
-    const arrowW    = fontSize * 1.4;
+    const arrowW    = fontSize * 2.8;
 
     tokens.forEach(tok => {
       if (tok.type === 'normal') {
@@ -135,77 +135,82 @@
      คืนค่าความกว้างที่ใช้ไป
      =================================================== */
   function drawArrow(ctx, type, x, y, fontSize) {
-    const hw  = fontSize * 0.7;
-    const ah  = fontSize * 0.28;
-    const mid = y;
-    const lw  = Math.max(1.5, fontSize * 0.08);
+  const len = fontSize * 2.8;   /* ความยาวเส้นลูกศร */
+  const ah  = fontSize * 0.5;   /* ความยาวหัวแฉลบ */
+  const ang = Math.PI / 5;      /* มุมหัวลูกศร 36 องศา */
+  const lw  = Math.max(2, fontSize * 0.1);
+  const mid = y;
 
-    ctx.strokeStyle = '#000000';
-    ctx.fillStyle   = '#000000';
-    ctx.lineWidth   = lw;
-    ctx.lineCap     = 'round';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth   = lw;
+  ctx.lineCap     = 'round';
 
-    const totalW = hw * 2;
+  if (type === '->') {
+    /* เส้นหลัก */
+    ctx.beginPath();
+    ctx.moveTo(x, mid);
+    ctx.lineTo(x + len, mid);
+    ctx.stroke();
+    /* หัวแฉลบ */
+    ctx.beginPath();
+    ctx.moveTo(x + len, mid);
+    ctx.lineTo(x + len - ah * Math.cos(ang), mid - ah * Math.sin(ang));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + len, mid);
+    ctx.lineTo(x + len - ah * Math.cos(ang), mid + ah * Math.sin(ang));
+    ctx.stroke();
 
-    if (type === '->') {
-      /* → */
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + totalW - ah, mid);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + totalW, mid);
-      ctx.lineTo(x + totalW - ah, mid - ah * 0.7);
-      ctx.lineTo(x + totalW - ah, mid + ah * 0.7);
-      ctx.closePath();
-      ctx.fill();
+  } else if (type === '<-') {
+    ctx.beginPath();
+    ctx.moveTo(x, mid);
+    ctx.lineTo(x + len, mid);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, mid);
+    ctx.lineTo(x + ah * Math.cos(ang), mid - ah * Math.sin(ang));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, mid);
+    ctx.lineTo(x + ah * Math.cos(ang), mid + ah * Math.sin(ang));
+    ctx.stroke();
 
-    } else if (type === '<-') {
-      /* ← */
-      ctx.beginPath();
-      ctx.moveTo(x + ah, mid);
-      ctx.lineTo(x + totalW, mid);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + ah, mid - ah * 0.7);
-      ctx.lineTo(x + ah, mid + ah * 0.7);
-      ctx.closePath();
-      ctx.fill();
+  } else if (type === '<->') {
+    const gap = fontSize * 0.22;
+    const y1  = mid - gap;
+    const y2  = mid + gap;
 
-    } else if (type === '<->') {
-      /* ⇌ สองลูกศรขนาน */
-      const gap = fontSize * 0.2;
-      const y1  = mid - gap;
-      const y2  = mid + gap;
+    /* บน: → */
+    ctx.beginPath();
+    ctx.moveTo(x, y1);
+    ctx.lineTo(x + len, y1);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + len, y1);
+    ctx.lineTo(x + len - ah * Math.cos(ang), y1 - ah * Math.sin(ang));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + len, y1);
+    ctx.lineTo(x + len - ah * Math.cos(ang), y1 + ah * Math.sin(ang));
+    ctx.stroke();
 
-      /* บน: → */
-      ctx.beginPath();
-      ctx.moveTo(x, y1);
-      ctx.lineTo(x + totalW - ah, y1);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + totalW, y1);
-      ctx.lineTo(x + totalW - ah, y1 - ah * 0.6);
-      ctx.lineTo(x + totalW - ah, y1 + ah * 0.6);
-      ctx.closePath();
-      ctx.fill();
-
-      /* ล่าง: ← */
-      ctx.beginPath();
-      ctx.moveTo(x + ah, y2);
-      ctx.lineTo(x + totalW, y2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y2);
-      ctx.lineTo(x + ah, y2 - ah * 0.6);
-      ctx.lineTo(x + ah, y2 + ah * 0.6);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    return totalW;
+    /* ล่าง: ← */
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + len, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + ah * Math.cos(ang), y2 - ah * Math.sin(ang));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + ah * Math.cos(ang), y2 + ah * Math.sin(ang));
+    ctx.stroke();
   }
+
+  return len;
+}
 
   /* ===================================================
      วาดลง Canvas หลัก
