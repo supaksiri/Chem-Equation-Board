@@ -26,21 +26,14 @@
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
-  const MAX_FONT_SIZE = 28;
+  const MAX_FONT_SIZE = 22;
   const MIN_FONT_SIZE = 7;
-  const MAX_TEXT_W    = 200;
+  const MAX_TEXT_W    = 210;
   const CENTER        = CANVAS_SIZE / 2;
-
-  /*
-    ใช้ serif font ที่มีในทุกระบบ (Windows/Mac/Android/iOS)
-    Georgia มี glyph ครบ รวมถึงตัวอักษรเคมีทั่วไป
-    ทำให้ภาพเหมือนกันทุกเครื่อง
-  */
-  const FONT_FAMILY = 'Georgia, "Times New Roman", serif';
+  const FONT_FAMILY   = 'Georgia, "Times New Roman", serif';
 
   /* ===================================================
-     แปลง Unicode superscript/subscript → ตัวเลขปกติ
-     เพื่อวาดเองบน Canvas ให้เหมือนกันทุกเครื่อง
+     แปลง Unicode → ตัวอักษรปกติ
      =================================================== */
   const SUPER_MAP = {
     '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4',
@@ -57,7 +50,6 @@
 
   /* ===================================================
      tokenize: แยกข้อความเป็น token แต่ละประเภท
-     token types: 'normal' | 'super' | 'sub' | 'arrow'
      =================================================== */
   function tokenize(text) {
     const tokens = [];
@@ -67,10 +59,9 @@
       const ch = text[i];
 
       if (ch in ARROW_MAP) {
-        tokens.push({ type: 'arrow', char: ch, raw: ARROW_MAP[ch] });
+        tokens.push({ type: 'arrow', raw: ARROW_MAP[ch] });
         i++;
       } else if (ch in SUPER_MAP) {
-        /* สะสม superscript ต่อเนื่อง */
         let s = '';
         while (i < text.length && text[i] in SUPER_MAP) {
           s += SUPER_MAP[text[i]];
@@ -78,7 +69,6 @@
         }
         tokens.push({ type: 'super', raw: s });
       } else if (ch in SUB_MAP) {
-        /* สะสม subscript ต่อเนื่อง */
         let s = '';
         while (i < text.length && text[i] in SUB_MAP) {
           s += SUB_MAP[text[i]];
@@ -86,7 +76,6 @@
         }
         tokens.push({ type: 'sub', raw: s });
       } else {
-        /* ตัวอักษรปกติ สะสมต่อเนื่อง */
         let s = '';
         while (
           i < text.length &&
@@ -104,13 +93,13 @@
   }
 
   /* ===================================================
-     วัดความกว้างรวมของ token ทั้งหมด
+     วัดความกว้างรวมของ tokens ทั้งหมด
      =================================================== */
   function measureTokens(ctx, tokens, fontSize) {
     let total = 0;
     const superSize = Math.round(fontSize * 0.65);
     const subSize   = Math.round(fontSize * 0.65);
-    const arrowSize = Math.round(fontSize * 1.1);
+    const arrowW    = fontSize * 1.4;
 
     tokens.forEach(tok => {
       if (tok.type === 'normal') {
@@ -123,8 +112,7 @@
         ctx.font = 'bold ' + subSize + 'px ' + FONT_FAMILY;
         total += ctx.measureText(tok.raw).width;
       } else if (tok.type === 'arrow') {
-        ctx.font = 'bold ' + arrowSize + 'px ' + FONT_FAMILY;
-        total += ctx.measureText(tok.raw).width + 4; /* padding */
+        total += arrowW + 8;
       }
     });
     return total;
@@ -143,38 +131,40 @@
   }
 
   /* ===================================================
-     วาด arrow บน Canvas (ไม่ใช้ Unicode)
+     วาดลูกศรบน Canvas โดยตรง (ไม่ใช้ Unicode)
+     คืนค่าความกว้างที่ใช้ไป
      =================================================== */
-  function drawArrow(ctx, type, x, y, size) {
-    const hw  = size * 0.55; /* half width ของลูกศร */
-    const ah  = size * 0.22; /* ความสูง head */
+  function drawArrow(ctx, type, x, y, fontSize) {
+    const hw  = fontSize * 0.7;
+    const ah  = fontSize * 0.28;
     const mid = y;
+    const lw  = Math.max(1.5, fontSize * 0.08);
 
     ctx.strokeStyle = '#000000';
     ctx.fillStyle   = '#000000';
-    ctx.lineWidth   = Math.max(1.5, size * 0.07);
+    ctx.lineWidth   = lw;
     ctx.lineCap     = 'round';
+
+    const totalW = hw * 2;
 
     if (type === '->') {
       /* → */
       ctx.beginPath();
       ctx.moveTo(x, mid);
-      ctx.lineTo(x + hw * 2, mid);
+      ctx.lineTo(x + totalW - ah, mid);
       ctx.stroke();
-      /* หัวลูกศร */
       ctx.beginPath();
-      ctx.moveTo(x + hw * 2, mid);
-      ctx.lineTo(x + hw * 2 - ah, mid - ah * 0.7);
-      ctx.lineTo(x + hw * 2 - ah, mid + ah * 0.7);
+      ctx.moveTo(x + totalW, mid);
+      ctx.lineTo(x + totalW - ah, mid - ah * 0.7);
+      ctx.lineTo(x + totalW - ah, mid + ah * 0.7);
       ctx.closePath();
       ctx.fill();
-      return hw * 2;
 
     } else if (type === '<-') {
       /* ← */
       ctx.beginPath();
-      ctx.moveTo(x + hw * 2, mid);
-      ctx.lineTo(x, mid);
+      ctx.moveTo(x + ah, mid);
+      ctx.lineTo(x + totalW, mid);
       ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(x, mid);
@@ -182,30 +172,29 @@
       ctx.lineTo(x + ah, mid + ah * 0.7);
       ctx.closePath();
       ctx.fill();
-      return hw * 2;
 
     } else if (type === '<->') {
       /* ⇌ สองลูกศรขนาน */
-      const gap = size * 0.18;
+      const gap = fontSize * 0.2;
       const y1  = mid - gap;
       const y2  = mid + gap;
 
       /* บน: → */
       ctx.beginPath();
       ctx.moveTo(x, y1);
-      ctx.lineTo(x + hw * 2, y1);
+      ctx.lineTo(x + totalW - ah, y1);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(x + hw * 2, y1);
-      ctx.lineTo(x + hw * 2 - ah, y1 - ah * 0.6);
-      ctx.lineTo(x + hw * 2 - ah, y1 + ah * 0.6);
+      ctx.moveTo(x + totalW, y1);
+      ctx.lineTo(x + totalW - ah, y1 - ah * 0.6);
+      ctx.lineTo(x + totalW - ah, y1 + ah * 0.6);
       ctx.closePath();
       ctx.fill();
 
       /* ล่าง: ← */
       ctx.beginPath();
-      ctx.moveTo(x + hw * 2, y2);
-      ctx.lineTo(x, y2);
+      ctx.moveTo(x + ah, y2);
+      ctx.lineTo(x + totalW, y2);
       ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(x, y2);
@@ -213,10 +202,9 @@
       ctx.lineTo(x + ah, y2 + ah * 0.6);
       ctx.closePath();
       ctx.fill();
-
-      return hw * 2;
     }
-    return 0;
+
+    return totalW;
   }
 
   /* ===================================================
@@ -243,9 +231,9 @@
 
     const superSize  = Math.round(fontSize * 0.65);
     const subSize    = Math.round(fontSize * 0.65);
-    const arrowSize  = Math.round(fontSize * 1.1);
-    const superShift = -Math.round(fontSize * 0.38); /* ขึ้น */
-    const subShift   =  Math.round(fontSize * 0.32); /* ลง */
+    const superShift = -Math.round(fontSize * 0.38);
+    const subShift   =  Math.round(fontSize * 0.32);
+    const arrowPad   = 4;
 
     /* วัดความกว้างรวมเพื่อจัดกึ่งกลาง */
     const totalWidth = measureTokens(ctx, tokens, fontSize);
@@ -258,27 +246,29 @@
     tokens.forEach(tok => {
       if (tok.type === 'normal') {
         ctx.font = 'bold ' + fontSize + 'px ' + FONT_FAMILY;
+        ctx.fillStyle = '#000000';
         ctx.fillText(tok.raw, x, CENTER);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'super') {
         ctx.font = 'bold ' + superSize + 'px ' + FONT_FAMILY;
+        ctx.fillStyle = '#000000';
         ctx.fillText(tok.raw, x, CENTER + superShift);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'sub') {
         ctx.font = 'bold ' + subSize + 'px ' + FONT_FAMILY;
+        ctx.fillStyle = '#000000';
         ctx.fillText(tok.raw, x, CENTER + subShift);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'arrow') {
-        const pad = 2;
-        x += pad;
-        const w = drawArrow(ctx, tok.raw, x, CENTER, arrowSize);
-        x += w + pad;
-        /* reset stroke */
-        ctx.strokeStyle = '#000000';
+        x += arrowPad;
+        const w = drawArrow(ctx, tok.raw, x, CENTER, fontSize);
+        x += w + arrowPad;
+        /* reset หลังวาดลูกศร */
         ctx.fillStyle   = '#000000';
+        ctx.strokeStyle = '#000000';
       }
     });
   }
@@ -301,8 +291,6 @@
 
   /* ===================================================
      INSERT AT CURSOR
-     ลูกศรและ + เว้นวรรคหน้า-หลังอัตโนมัติ
-     (กำหนดใน data-sym ของ index.html)
      =================================================== */
   function insertAtCursor(symbol) {
     const start = input.selectionStart;
