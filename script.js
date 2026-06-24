@@ -124,7 +124,7 @@
      =================================================== */
   function drawArrow(ctx, type, x, y, fontSize) {
     const len = ARROW_LEN;
-    const ah  = ARROW_LEN * 0.9;       /* ความยาวหัวแฉลบ */
+    const ah  = fontSize * 0.9;       /* ความยาวหัวแฉลบ */
     const ang = Math.PI / 6;          /* มุม 30 องศา */
     const lw  = Math.max(2.5, fontSize * 0.12);
     const mid = y;
