@@ -26,19 +26,13 @@
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
-  const MAX_FONT_SIZE = 42;  /* ใหญ่ขึ้น */
+  const MAX_FONT_SIZE = 42;
   const MIN_FONT_SIZE = 8;
   const MAX_TEXT_W    = 200;
-  const CENTER_X      = CANVAS_SIZE / 2;       /* 112 */
-  const CENTER_Y      = CANVAS_SIZE / 2;       /* 112 — กึ่งกลางแนวตั้งที่แท้จริง */
+  const CENTER_X      = CANVAS_SIZE / 2;
+  const CENTER_Y      = CANVAS_SIZE / 2;
   const FONT_FAMILY   = 'Georgia, "Times New Roman", serif';
-
-  /* ลูกศร: pixel คงที่ทุกค่า */
-  const ARROW_LEN  = 26;
-  const ARROW_HEAD = 14;
-  const ARROW_ANG  = Math.PI / 5.5;
-  const ARROW_LW   = 2.5;
-  const ARROW_PAD  = 4;
+  const ARROW_PAD     = 3; /* padding ซ้ายขวาลูกศร */
 
   /* ===================================================
      Unicode maps
@@ -85,8 +79,12 @@
   }
 
   /* ===================================================
-     วัดความกว้างรวม
+     วัดความกว้างรวม — ลูกศรสัดส่วนกับ fontSize
      =================================================== */
+  function arrowWidth(fontSize) {
+    return fontSize * 1.2;
+  }
+
   function measureTokens(ctx, tokens, fontSize) {
     let total = 0;
     const superSize = Math.round(fontSize * 0.65);
@@ -102,7 +100,7 @@
         ctx.font = 'bold ' + subSize + 'px ' + FONT_FAMILY;
         total += ctx.measureText(tok.raw).width;
       } else if (tok.type === 'arrow') {
-        total += ARROW_LEN + ARROW_PAD * 2;
+        total += arrowWidth(fontSize) + ARROW_PAD * 2;
       }
     });
     return total;
@@ -121,15 +119,17 @@
   }
 
   /* ===================================================
-     วาดลูกศร — pixel คงที่ทุกเครื่อง
+     วาดลูกศร — สัดส่วนกับ fontSize
      =================================================== */
-  function drawArrow(ctx, type, x, y) {
-    const len = ARROW_LEN;
-    const ah  = ARROW_HEAD;
-    const ang = ARROW_ANG;
+  function drawArrow(ctx, type, x, y, fontSize) {
+    const len = arrowWidth(fontSize);
+    const ah  = fontSize * 0.55;       /* ความยาวหัวแฉลบ */
+    const ang = Math.PI / 5.5;         /* มุม ~33 องศา */
+    const lw  = Math.max(1.5, fontSize * 0.1);
+    const gap = fontSize * 0.22;       /* ระยะห่าง ⇌ */
 
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth   = ARROW_LW;
+    ctx.lineWidth   = lw;
     ctx.lineCap     = 'round';
     ctx.lineJoin    = 'round';
 
@@ -148,14 +148,15 @@
       ctx.lineTo(x + ah * Math.cos(ang), y + ah * Math.sin(ang)); ctx.stroke();
 
     } else if (type === '<->') {
-      const gap = 5;
-      const y1  = y - gap;
-      const y2  = y + gap;
+      const y1 = y - gap;
+      const y2 = y + gap;
+      /* บน → */
       ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x + len, y1); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x + len, y1);
       ctx.lineTo(x + len - ah * Math.cos(ang), y1 - ah * Math.sin(ang)); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x + len, y1);
       ctx.lineTo(x + len - ah * Math.cos(ang), y1 + ah * Math.sin(ang)); ctx.stroke();
+      /* ล่าง ← */
       ctx.beginPath(); ctx.moveTo(x, y2); ctx.lineTo(x + len, y2); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x, y2);
       ctx.lineTo(x + ah * Math.cos(ang), y2 - ah * Math.sin(ang)); ctx.stroke();
@@ -168,7 +169,6 @@
      วาดลง Canvas
      =================================================== */
   function drawCanvas(ctx, text, size) {
-    /* พื้นหลังขาว */
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, size, size);
 
@@ -185,24 +185,14 @@
     const tokens   = tokenize(text);
     const fontSize = calcFontSize(ctx, tokens);
 
-    const superSize = Math.round(fontSize * 0.65);
-    const subSize   = Math.round(fontSize * 0.65);
-
-    /*
-      superShift / subShift: ชดเชยตำแหน่ง y ของ super/subscript
-      ใช้สัดส่วนกับ fontSize เพื่อให้อยู่ใกล้ตัวอักษรหลัก
-    */
+    const superSize  = Math.round(fontSize * 0.65);
+    const subSize    = Math.round(fontSize * 0.65);
     const superShift = -Math.round(fontSize * 0.36);
     const subShift   =  Math.round(fontSize * 0.30);
 
-    /* วัดความกว้างรวม แล้วเริ่มวาดจากกึ่งกลาง */
     const totalWidth = measureTokens(ctx, tokens, fontSize);
     let x = CENTER_X - totalWidth / 2;
 
-    /*
-      CENTER_Y คือ 112 = กึ่งกลางภาพจริง
-      textBaseline = 'middle' ทำให้ตัวอักษรอยู่กึ่งกลาง y พอดี
-    */
     ctx.fillStyle    = '#000000';
     ctx.textBaseline = 'middle';
     ctx.textAlign    = 'left';
@@ -228,8 +218,8 @@
 
       } else if (tok.type === 'arrow') {
         x += ARROW_PAD;
-        drawArrow(ctx, tok.raw, x, CENTER_Y);
-        x += ARROW_LEN + ARROW_PAD;
+        drawArrow(ctx, tok.raw, x, CENTER_Y, fontSize);
+        x += arrowWidth(fontSize) + ARROW_PAD;
         ctx.fillStyle   = '#000000';
         ctx.strokeStyle = '#000000';
       }
@@ -237,17 +227,15 @@
   }
 
   /* ===================================================
-     PREVIEW — คมชัดด้วย devicePixelRatio
+     PREVIEW
      =================================================== */
   function updatePreview() {
     const eq  = input.value;
     const DPR = window.devicePixelRatio || 1;
-
     previewCanvas.width        = CANVAS_SIZE * DPR;
     previewCanvas.height       = CANVAS_SIZE * DPR;
     previewCanvas.style.width  = CANVAS_SIZE + 'px';
     previewCanvas.style.height = CANVAS_SIZE + 'px';
-
     previewCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
     drawCanvas(previewCtx, eq, CANVAS_SIZE);
   }
@@ -343,7 +331,6 @@
     drawCanvas(exportCanvas.getContext('2d'), eq, CANVAS_SIZE);
 
     const filename = generateFilename();
-
     if (exportCanvas.toBlob) {
       exportCanvas.toBlob(blob => {
         if (!blob) { fallbackDataURL(exportCanvas, filename); return; }
