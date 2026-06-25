@@ -26,18 +26,22 @@
 
   /* ---- Canvas config ---- */
   const CANVAS_SIZE   = 224;
-  const MAX_FONT_SIZE = 32;
+  const MAX_FONT_SIZE = 42;  /* ใหญ่ขึ้น */
   const MIN_FONT_SIZE = 8;
   const MAX_TEXT_W    = 200;
-  const CENTER        = CANVAS_SIZE / 2; /* 112 */
+  const CENTER_X      = CANVAS_SIZE / 2;       /* 112 */
+  const CENTER_Y      = CANVAS_SIZE / 2;       /* 112 — กึ่งกลางแนวตั้งที่แท้จริง */
   const FONT_FAMILY   = 'Georgia, "Times New Roman", serif';
 
-  /* ---- ขนาดลูกศรคงที่ (pixel) เพื่อให้วัดแม่นยำ ---- */
-  const ARROW_LEN = 28; /* ความยาวเส้นลูกศร */
-  const ARROW_PAD = 5;  /* padding ซ้ายขวาลูกศร */
+  /* ลูกศร: pixel คงที่ทุกค่า */
+  const ARROW_LEN  = 26;
+  const ARROW_HEAD = 14;
+  const ARROW_ANG  = Math.PI / 5.5;
+  const ARROW_LW   = 2.5;
+  const ARROW_PAD  = 4;
 
   /* ===================================================
-     แปลง Unicode → ตัวอักษรปกติ
+     Unicode maps
      =================================================== */
   const SUPER_MAP = {
     '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4',
@@ -48,9 +52,7 @@
     '₀':'0','₁':'1','₂':'2','₃':'3','₄':'4',
     '₅':'5','₆':'6','₇':'7','₈':'8','₉':'9'
   };
-  const ARROW_MAP = {
-    '→':'->','←':'<-','⇌':'<->'
-  };
+  const ARROW_MAP = { '→':'->','←':'<-','⇌':'<->' };
 
   /* ===================================================
      tokenize
@@ -89,7 +91,6 @@
     let total = 0;
     const superSize = Math.round(fontSize * 0.65);
     const subSize   = Math.round(fontSize * 0.65);
-
     tokens.forEach(tok => {
       if (tok.type === 'normal') {
         ctx.font = 'bold ' + fontSize + 'px ' + FONT_FAMILY;
@@ -120,93 +121,54 @@
   }
 
   /* ===================================================
-     วาดลูกศรแบบเส้นแฉลบยาว (ไม่ใช้ Unicode)
+     วาดลูกศร — pixel คงที่ทุกเครื่อง
      =================================================== */
-  function drawArrow(ctx, type, x, y, fontSize) {
+  function drawArrow(ctx, type, x, y) {
     const len = ARROW_LEN;
-    const ah  = fontSize * 0.9;       /* ความยาวหัวแฉลบ */
-    const ang = Math.PI / 6;          /* มุม 30 องศา */
-    const lw  = Math.max(2.5, fontSize * 0.12);
-    const mid = y;
+    const ah  = ARROW_HEAD;
+    const ang = ARROW_ANG;
 
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth   = lw;
+    ctx.lineWidth   = ARROW_LW;
     ctx.lineCap     = 'round';
     ctx.lineJoin    = 'round';
 
     if (type === '->') {
-      /* เส้นหลัก */
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + len, mid);
-      ctx.stroke();
-      /* หัวแฉลบบน */
-      ctx.beginPath();
-      ctx.moveTo(x + len, mid);
-      ctx.lineTo(x + len - ah * Math.cos(ang), mid - ah * Math.sin(ang));
-      ctx.stroke();
-      /* หัวแฉลบล่าง */
-      ctx.beginPath();
-      ctx.moveTo(x + len, mid);
-      ctx.lineTo(x + len - ah * Math.cos(ang), mid + ah * Math.sin(ang));
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + len, y);
+      ctx.lineTo(x + len - ah * Math.cos(ang), y - ah * Math.sin(ang)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + len, y);
+      ctx.lineTo(x + len - ah * Math.cos(ang), y + ah * Math.sin(ang)); ctx.stroke();
 
     } else if (type === '<-') {
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + len, mid);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + ah * Math.cos(ang), mid - ah * Math.sin(ang));
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, mid);
-      ctx.lineTo(x + ah * Math.cos(ang), mid + ah * Math.sin(ang));
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y);
+      ctx.lineTo(x + ah * Math.cos(ang), y - ah * Math.sin(ang)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y);
+      ctx.lineTo(x + ah * Math.cos(ang), y + ah * Math.sin(ang)); ctx.stroke();
 
     } else if (type === '<->') {
-      /* ⇌ สองลูกศรขนาน */
-      const gap = fontSize * 0.22;
-      const y1  = mid - gap;
-      const y2  = mid + gap;
-
-      /* บน: → */
-      ctx.beginPath();
-      ctx.moveTo(x, y1);
-      ctx.lineTo(x + len, y1);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + len, y1);
-      ctx.lineTo(x + len - ah * Math.cos(ang), y1 - ah * Math.sin(ang));
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + len, y1);
-      ctx.lineTo(x + len - ah * Math.cos(ang), y1 + ah * Math.sin(ang));
-      ctx.stroke();
-
-      /* ล่าง: ← */
-      ctx.beginPath();
-      ctx.moveTo(x, y2);
-      ctx.lineTo(x + len, y2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y2);
-      ctx.lineTo(x + ah * Math.cos(ang), y2 - ah * Math.sin(ang));
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y2);
-      ctx.lineTo(x + ah * Math.cos(ang), y2 + ah * Math.sin(ang));
-      ctx.stroke();
+      const gap = 5;
+      const y1  = y - gap;
+      const y2  = y + gap;
+      ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x + len, y1); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + len, y1);
+      ctx.lineTo(x + len - ah * Math.cos(ang), y1 - ah * Math.sin(ang)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + len, y1);
+      ctx.lineTo(x + len - ah * Math.cos(ang), y1 + ah * Math.sin(ang)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y2); ctx.lineTo(x + len, y2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y2);
+      ctx.lineTo(x + ah * Math.cos(ang), y2 - ah * Math.sin(ang)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y2);
+      ctx.lineTo(x + ah * Math.cos(ang), y2 + ah * Math.sin(ang)); ctx.stroke();
     }
-
-    return len;
   }
 
   /* ===================================================
-     วาดลง Canvas หลัก
+     วาดลง Canvas
      =================================================== */
   function drawCanvas(ctx, text, size) {
+    /* พื้นหลังขาว */
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, size, size);
 
@@ -214,10 +176,8 @@
       ctx.strokeStyle = '#E8F5EF';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(size / 2, 20);
-      ctx.lineTo(size / 2, size - 20);
-      ctx.moveTo(20, size / 2);
-      ctx.lineTo(size - 20, size / 2);
+      ctx.moveTo(size / 2, 20); ctx.lineTo(size / 2, size - 20);
+      ctx.moveTo(20, size / 2); ctx.lineTo(size - 20, size / 2);
       ctx.stroke();
       return;
     }
@@ -225,14 +185,24 @@
     const tokens   = tokenize(text);
     const fontSize = calcFontSize(ctx, tokens);
 
-    const superSize  = Math.round(fontSize * 0.65);
-    const subSize    = Math.round(fontSize * 0.65);
-    const superShift = -Math.round(fontSize * 0.38);
-    const subShift   =  Math.round(fontSize * 0.32);
+    const superSize = Math.round(fontSize * 0.65);
+    const subSize   = Math.round(fontSize * 0.65);
 
+    /*
+      superShift / subShift: ชดเชยตำแหน่ง y ของ super/subscript
+      ใช้สัดส่วนกับ fontSize เพื่อให้อยู่ใกล้ตัวอักษรหลัก
+    */
+    const superShift = -Math.round(fontSize * 0.36);
+    const subShift   =  Math.round(fontSize * 0.30);
+
+    /* วัดความกว้างรวม แล้วเริ่มวาดจากกึ่งกลาง */
     const totalWidth = measureTokens(ctx, tokens, fontSize);
-    let x = CENTER - totalWidth / 2;
+    let x = CENTER_X - totalWidth / 2;
 
+    /*
+      CENTER_Y คือ 112 = กึ่งกลางภาพจริง
+      textBaseline = 'middle' ทำให้ตัวอักษรอยู่กึ่งกลาง y พอดี
+    */
     ctx.fillStyle    = '#000000';
     ctx.textBaseline = 'middle';
     ctx.textAlign    = 'left';
@@ -241,24 +211,24 @@
       if (tok.type === 'normal') {
         ctx.font = 'bold ' + fontSize + 'px ' + FONT_FAMILY;
         ctx.fillStyle = '#000000';
-        ctx.fillText(tok.raw, x, CENTER);
+        ctx.fillText(tok.raw, x, CENTER_Y);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'super') {
         ctx.font = 'bold ' + superSize + 'px ' + FONT_FAMILY;
         ctx.fillStyle = '#000000';
-        ctx.fillText(tok.raw, x, CENTER + superShift);
+        ctx.fillText(tok.raw, x, CENTER_Y + superShift);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'sub') {
         ctx.font = 'bold ' + subSize + 'px ' + FONT_FAMILY;
         ctx.fillStyle = '#000000';
-        ctx.fillText(tok.raw, x, CENTER + subShift);
+        ctx.fillText(tok.raw, x, CENTER_Y + subShift);
         x += ctx.measureText(tok.raw).width;
 
       } else if (tok.type === 'arrow') {
         x += ARROW_PAD;
-        drawArrow(ctx, tok.raw, x, CENTER, fontSize);
+        drawArrow(ctx, tok.raw, x, CENTER_Y);
         x += ARROW_LEN + ARROW_PAD;
         ctx.fillStyle   = '#000000';
         ctx.strokeStyle = '#000000';
@@ -267,7 +237,7 @@
   }
 
   /* ===================================================
-     PREVIEW
+     PREVIEW — คมชัดด้วย devicePixelRatio
      =================================================== */
   function updatePreview() {
     const eq  = input.value;
@@ -289,12 +259,9 @@
     const start = input.selectionStart;
     const end   = input.selectionEnd;
     const val   = input.value;
-
     input.value = val.slice(0, start) + symbol + val.slice(end);
-
     const newPos = start + symbol.length;
     input.setSelectionRange(newPos, newPos);
-
     input.focus();
     updatePreview();
   }
@@ -352,21 +319,15 @@
     const eq = input.value.trim();
     if (!eq) { showStatus('ยังไม่มีสมการให้คัดลอก', true); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(eq);
-        showStatus('คัดลอกสมการแล้ว ✓');
-      } catch { fallbackCopy(); }
+      try { await navigator.clipboard.writeText(eq); showStatus('คัดลอกสมการแล้ว ✓'); }
+      catch { fallbackCopy(); }
     } else { fallbackCopy(); }
   });
 
   function fallbackCopy() {
     input.select();
-    try {
-      document.execCommand('copy');
-      showStatus('คัดลอกสมการแล้ว ✓');
-    } catch {
-      showStatus('ไม่สามารถคัดลอกได้ กรุณาเลือกข้อความเอง', true);
-    }
+    try { document.execCommand('copy'); showStatus('คัดลอกสมการแล้ว ✓'); }
+    catch { showStatus('ไม่สามารถคัดลอกได้ กรุณาเลือกข้อความเอง', true); }
   }
 
   /* ===================================================
@@ -379,8 +340,7 @@
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width  = CANVAS_SIZE;
     exportCanvas.height = CANVAS_SIZE;
-    const ctx = exportCanvas.getContext('2d');
-    drawCanvas(ctx, eq, CANVAS_SIZE);
+    drawCanvas(exportCanvas.getContext('2d'), eq, CANVAS_SIZE);
 
     const filename = generateFilename();
 
@@ -392,28 +352,21 @@
         setTimeout(() => URL.revokeObjectURL(url), 10000);
         showStatus('บันทึกไฟล์ PNG 224×224 แล้ว ✓');
       }, 'image/png', 1.0);
-    } else {
-      fallbackDataURL(exportCanvas, filename);
-    }
+    } else { fallbackDataURL(exportCanvas, filename); }
   });
 
   function fallbackDataURL(canvas, filename) {
     try {
-      const dataURL = canvas.toDataURL('image/png');
-      triggerDownload(dataURL, filename);
+      triggerDownload(canvas.toDataURL('image/png'), filename);
       showStatus('บันทึกไฟล์ PNG 224×224 แล้ว ✓');
-    } catch (e) {
-      showStatus('ไม่สามารถบันทึกได้: ' + e.message, true);
-    }
+    } catch (e) { showStatus('ไม่สามารถบันทึกได้: ' + e.message, true); }
   }
 
   function triggerDownload(href, filename) {
     const a = document.createElement('a');
     a.href = href; a.download = filename;
-    a.rel = 'noopener'; a.target = '_self';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
+    a.rel = 'noopener'; a.target = '_self'; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
     requestAnimationFrame(() => document.body.removeChild(a));
   }
 
@@ -445,7 +398,7 @@
   }
 
   /* ===================================================
-     LIVE INPUT LISTENER
+     LIVE INPUT
      =================================================== */
   input.addEventListener('input',   updatePreview);
   input.addEventListener('keydown', updatePreview);
