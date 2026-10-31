@@ -1,91 +1,41 @@
-# Chem Equation Board
+# ATOMVERSE 4.0 — Luminous Hybrid Lab
 
-เว็บแอพสำหรับพิมพ์สมการเคมีและบันทึกเป็นภาพ PNG ขนาด **224×224 พิกเซล** สำหรับใช้กับ Teachable Machine
+React 18 + TypeScript + Vite + React Three Fiber educational chemistry web app, designed for a Thai Grade 10 (ม.4) course. **Development source; browser/build verification still required.**
 
-**พัฒนาโดย:** นายธนพงศ์ ชาชิโย
+## Modules
 
----
+1. **ATOM FORGE**: protons/neutrons/electrons, isotope identity, 3D nucleus, A/B comparison and atom missions.
+2. **MASS CHAMBER**: representative 3D balance with **one constant-sized bead per selected atom** (0–24 on each pan). With reference mode, the right-hand beads represent **1-u mass units**, not atoms. Difference in pan level is based on total representative mass. This is a visual analogy, not a real atomic weighing instrument.
+3. **ISOTOPE REACTOR**: hypothetical Cl-35/Cl-37 percentage 0–100, weighted isotopic mass and 80-point particle display.
+4. **MOLECULE STUDIO**: guided molecule assembly for 8 verified formulas, molecular mass calculation. This is not a free-valence bond builder.
+5. **QUIZ CENTER**: 16 built-in four-choice questions, 4 per laboratory; either all 16 or 4 per laboratory, immediate-feedback practice mode or end-of-quiz feedback exam mode. Each explanation links back to a relevant lab. Questions are hand-authored rather than generated randomly.
+6. **SCIENCE DETECTIVE**: 4 lab-linked missions, contextual hints and achievement recording from relevant lab state. LAB 01 additionally has its five inherited Mini Missions.
+7. **PERIODIC PORTAL**: interactive short 20-element table with approximate standard atomic weights. Selecting an element launches Atom Forge with that proton/electron count; neutron count starts with a simplified illustrative value and may not correspond to a known stable isotope. Isotope masses are displayed only when a validated dataset entry exists. LAB 02 has the more limited isotope sample selector.
+8. **SCIENCE PASSPORT**: local browser storage for 4 detective achievements, last 30 quiz submissions, printing via browser Print to PDF. No accounts, central class grading or cloud sync.
 
-## วิธีใช้งาน
+## Getting started
 
-1. เปิดเว็บแอพผ่าน GitHub Pages
-2. พิมพ์สมการเคมีในช่องพิมพ์ เช่น `NaOH + HCl → NaCl + H₂O`
-3. ใช้ปุ่มเครื่องมือเมื่อจำเป็น
-   - **ประจุ / ตัวยก** — แทรกประจุบวก/ลบ และเลขยกกำลัง เช่น ²⁺ ³⁻
-   - **ตัวห้อย** — แทรกเลขห้อย ₁–₂₀ เช่น H₂O, CO₂
-   - **ลูกศร** — แทรกลูกศร → ← ⇌ และเครื่องหมายอื่น
-4. ตรวจดูตัวอย่างภาพ 224×224 ในส่วน Preview
-5. กดปุ่ม **บันทึก PNG 224×224** เพื่อดาวน์โหลดภาพ
-6. นำภาพที่ได้ไปใช้ใน Teachable Machine
-
----
-
-## คุณสมบัติ
-
-- พิมพ์สมการเคมีแบบบรรทัดเดียว
-- ปุ่มแทรกสัญลักษณ์พิเศษ (ประจุ ตัวห้อย ลูกศร) ตรงตำแหน่ง cursor
-- Preview สมการแบบ real-time พร้อมย่อตัวอักษรอัตโนมัติ
-- Export PNG ขนาดจริง 224×224 px — พื้นขาว ตัวอักษรดำ
-- ชื่อไฟล์อัตโนมัติ เช่น `chem-equation-20260618-193000.png`
-- ปุ่มคัดลอกสมการ
-- รองรับมือถือ แท็บเล็ต และคอมพิวเตอร์
-- ไม่ต้องการ Backend หรือ Login
-
----
-
-## วิธีนำขึ้น GitHub Pages
-
-1. สร้าง repository ใหม่บน GitHub
-2. อัปโหลดไฟล์ทั้งสี่: `index.html`, `style.css`, `script.js`, `README.md`
-3. ไปที่แท็บ **Settings** ของ repository
-4. เลือก **Pages** ในเมนูซ้าย
-5. ที่ **Source** เลือก **Deploy from a branch**
-6. **Branch** เลือก `main` — **Folder** เลือก `/ (root)`
-7. กด **Save**
-8. รอสักครู่ แล้วเปิดลิงก์ GitHub Pages ที่แสดงขึ้นมา
-
----
-
-## โครงสร้างไฟล์
-
-```
-chem-equation-board/
-├── index.html   — โครงสร้างหน้าเว็บ
-├── style.css    — การออกแบบ UI
-├── script.js    — ตรรกะการทำงานและ Canvas export
-└── README.md    — คำอธิบายโปรเจกต์
+```bash
+npm install
+npm test
+npm run build
+npm run dev
 ```
 
----
+Open the Vite URL indicated by the terminal. Before showing students: verify Build, live rendering, controls, quiz feedback, mobile layouts and browser console. `npm run build` emits `dist/`. No `node_modules` needs to be uploaded.
 
-## ตัวอย่างสมการที่พิมพ์ได้
+## GitHub Pages
 
-| สมการ | ตัวอย่าง |
-|-------|---------|
-| กรด-เบส | `HCl(aq) → H⁺(aq) + Cl⁻(aq)` |
-| ไอออนิก | `Na⁺ + Cl⁻ → NaCl` |
-| สมดุล | `N₂ + 3H₂ ⇌ 2NH₃` |
-| ออกซิเดชัน | `Ca²⁺ + 2Cl⁻ → CaCl₂` |
-| อินทรีย์ | `C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂` |
+Recommended: deploy to a **new** public GitHub repository `atomverse-4.0` so the working ATOMVERSE 3.0/2.0 link is preserved. Upload the **contents** of this project into repository root, including hidden `.github/workflows/deploy.yml` (but exclude `node_modules`). Settings → Pages → Source = **GitHub Actions**; commit to `main`. The bundled workflow runs install → tests → build → deploy `dist`. Once successful: `https://supaksiri.github.io/atomverse-4.0/`. GitHub Pages builds require npm registry connectivity in GitHub Actions.
 
----
+## Scientific cautions and TODO
 
-## เทคโนโลยีที่ใช้
-
-- HTML5 Canvas สำหรับสร้างภาพ PNG
-- Vanilla JavaScript — ไม่มี Framework
-- CSS3 ล้วน — ไม่มี Library ภายนอก
-- รันได้บน GitHub Pages โดยไม่ต้องตั้งค่าเพิ่มเติม
-
----
-
-## ข้อกำหนดภาพ Export
-
-| คุณสมบัติ | ค่า |
-|----------|-----|
-| ขนาด | 224 × 224 pixels |
-| ฟอร์แมต | PNG |
-| พื้นหลัง | ขาวล้วน (#FFFFFF) |
-| ตัวอักษร | ดำ (#000000) |
-| ตำแหน่ง | กึ่งกลางทั้งแนวนอนและแนวตั้ง |
-| บรรทัด | บรรทัดเดียว |
+- 3D balance models weight/number abstractly, **not actual atomic physical scales**, and visual bead size is fixed.
+- Nuclide mass is not necessarily equal to its mass number. In a selected natural element, standard atomic weight is not a single-isotope mass.
+- Chlorine abundances here are user-controlled hypothetical percentages. The 80 points approximate the percentage in whole-particle increments.
+- Simplified nucleus geometry and molecular geometry are not to scale; model is explicitly pedagogical.
+- Quiz is currently 16 items, not a full validated 40-item exam. No statistically validated item difficulties/discriminations.
+- Periodic Portal contains 20 elements only. It does not currently pass an isotope selection to Mass Chamber.
+- Mission achievement requires clicking **record** after meeting the target LAB 02–04 state; not silently awarded.
+- Users can clear browser storage; scores are **not** sent to teacher or database.
+- Build/browser screenshot/mobile/keyboard accessibility audits are not verified in this environment: npm dependency download is blocked. Tests validate existing science calculations and structural integration, **not** browser-level simulation correctness.

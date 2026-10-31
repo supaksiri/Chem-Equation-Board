@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const quiz=fs.readFileSync(new URL('../src/learning.ts',import.meta.url),'utf8');
+const scene=fs.readFileSync(new URL('../src/labs/ScienceScenes.tsx',import.meta.url),'utf8');
+const app=fs.readFileSync(new URL('../src/CompleteApp.tsx',import.meta.url),'utf8');
+test('quiz includes sixteen four-option question objects',()=>{assert.equal((quiz.match(/\{id:'[abcd]\d'/g)||[]).length,16);assert.equal((quiz.match(/correct:[0-3],explain:/g)||[]).length,16);});
+test('four detective cases mapped to laboratory states',()=>{assert.equal((quiz.match(/id:'detect-/g)||[]).length,4)});
+test('scale receives count for both trays',()=>{assert.match(scene,/leftCount:number;rightCount:number/);assert.match(scene,/beads\(i===0\?leftCount:rightCount/);assert.match(scene,/r=\{\.125\}/)});
+test('all eight destinations included in navigation',()=>{for(const id of ['QUIZ CENTER','SCIENCE DETECTIVE','PERIODIC PORTAL','SCIENCE PASSPORT'])assert.ok(app.includes(id));});

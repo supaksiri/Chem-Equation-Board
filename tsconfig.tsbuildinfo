@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/CompleteApp.tsx","./src/Features.tsx","./src/Progress.ts","./src/learning.ts","./src/main.tsx","./src/chemistry/atom.ts","./src/chemistry/mass.ts","./src/components/AtomScene.tsx","./src/labs/ExtraLabs.tsx","./src/labs/ScienceScenes.tsx","./vite.config.ts"],"errors":true,"version":"5.8.3"}
